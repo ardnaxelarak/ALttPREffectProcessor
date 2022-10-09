@@ -20,6 +20,7 @@ namespace ALttPREffectProcessor {
         private int lastState = 0;
         private readonly List<EffectInstance> effectQueue = new();
         private readonly List<DeviceWrite> writes = new();
+        private readonly MemoryCacher memory;
         private bool connected = false;
 
         public event Action<EffectData>? OnEffectStatusChange;
@@ -33,6 +34,7 @@ namespace ALttPREffectProcessor {
         }
 
         private SnesController() {
+            memory = new(ReadInternal);
             snes = new();
             snes.SetTimeout(TimeSpan.FromSeconds(1));
         }
@@ -71,6 +73,7 @@ namespace ALttPREffectProcessor {
                 stopwatch.Restart();
                 await Loop(elapsed);
                 await FlushWrites();
+                memory.Clear();
                 await Task.Delay(TimeSpan.FromSeconds(0.05));
             }
         }
@@ -100,7 +103,7 @@ namespace ALttPREffectProcessor {
 
         internal async Task<bool> CheckMemory(Dictionary<DataAddress, MemoryCondition> dict) {
             if (dict.Count == 0) return true;
-            Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => Read(key));
+            Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => memory.ReadInt(key));
             await Task.WhenAll(values.Values);
             foreach (var key in dict.Keys) {
                 if (!dict[key].IsValid(values[key].Result)) {
@@ -112,7 +115,7 @@ namespace ALttPREffectProcessor {
 
         internal async Task UpdateMemory(Dictionary<DataAddress, MemoryUpdate> dict) {
             if (dict.Count == 0) return;
-            Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => Read(key));
+            Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => memory.ReadInt(key));
             await Task.WhenAll(values.Values);
             foreach (var key in dict.Keys) {
                 Console.WriteLine($"{key.address:X6}.{key.size:X}");
@@ -140,7 +143,7 @@ namespace ALttPREffectProcessor {
         private async Task Loop(TimeSpan elapsed) {
             int state;
             try {
-                state = await Read(Addresses.GameState);
+                state = await memory.ReadInt(Addresses.GameState);
                 Connected = true;
             } catch (SnesException) {
                 Connected = false;
@@ -184,24 +187,13 @@ namespace ALttPREffectProcessor {
             effectQueue.RemoveAll(x => x.Status == EffectStatus.Finished || x.Status == EffectStatus.Failed);
         }
 
-        private async Task<int> Read(DataAddress addr) {
-            int realAddress = addr.bank switch {
-                DataBank.Rom => addr.address,
-                _ => 0xF50000 + addr.address,
-            };
-            List<byte> result;
+        private async Task<List<byte>> ReadInternal(int address, int length) {
             try {
-                result = await snes.ReadMemory(realAddress, addr.size);
+                return await snes.ReadMemory(address, length);
             } catch (SnesException) {
                 await TryReattach();
-                result = await snes.ReadMemory(realAddress, addr.size);
+                return await snes.ReadMemory(address, length);
             }
-
-            int value = 0;
-            for (int i = 0; i < result.Count; i++) {
-                value |= result[i] << (8 * i);
-            }
-            return value;
         }
 
         private void QueueWrite(DataAddress addr, int value) {
