@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,11 +71,13 @@ namespace ALttPREffectProcessor {
             var stopwatch = new Stopwatch();
             while (!token.IsCancellationRequested) {
                 try {
-                    TimeSpan elapsed = stopwatch.Elapsed;
-                    stopwatch.Restart();
-                    await Loop(elapsed);
-                    await FlushWrites();
-                    memory.Clear();
+                    if (snes.State == WebSocketState.Open) {
+                        TimeSpan elapsed = stopwatch.Elapsed;
+                        stopwatch.Restart();
+                        await Loop(elapsed);
+                        await FlushWrites();
+                        memory.Clear();
+                    }
                     await Task.Delay(TimeSpan.FromSeconds(0.05), token);
                 } catch (TaskCanceledException) { }
             }
@@ -176,7 +179,7 @@ namespace ALttPREffectProcessor {
                 }
             }
 
-            HashSet<string> typesInProgress = effectQueue.Where(x => x.Status == EffectStatus.InProgress).Select(x => x.Category).ToHashSet();
+            HashSet<string> typesInProgress = new(effectQueue.Where(x => x.Status == EffectStatus.InProgress).Select(x => x.Category));
 
             foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.Unstarted)) {
                 if (typesInProgress.Contains(effect.Category)) continue;
