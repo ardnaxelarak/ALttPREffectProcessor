@@ -69,17 +69,21 @@ namespace ALttPREffectProcessor {
         public async Task Main(CancellationToken token) {
             var stopwatch = new Stopwatch();
             while (!token.IsCancellationRequested) {
-                TimeSpan elapsed = stopwatch.Elapsed;
-                stopwatch.Restart();
-                await Loop(elapsed);
-                await FlushWrites();
-                memory.Clear();
-                await Task.Delay(TimeSpan.FromSeconds(0.05));
+                try {
+                    TimeSpan elapsed = stopwatch.Elapsed;
+                    stopwatch.Restart();
+                    await Loop(elapsed);
+                    await FlushWrites();
+                    memory.Clear();
+                    await Task.Delay(TimeSpan.FromSeconds(0.05), token);
+                } catch (TaskCanceledException) { }
             }
         }
 
         public void AddEffect(EffectData data) {
-            effectQueue.Add(EffectInstance.GetEffect(data));
+            EffectInstance effect = EffectInstance.GetEffect(data);
+            effectQueue.Add(effect);
+            OnEffectStatusChange?.Invoke(effect.Data.Clone());
         }
 
         public async Task CancelAll() {
@@ -131,9 +135,13 @@ namespace ALttPREffectProcessor {
             set {
                 if (connected != value) {
                     if (value) {
-                        OnConnected?.Invoke();
+                        try {
+                            OnConnected?.Invoke();
+                        } catch (Exception) { }
                     } else {
-                        OnDisconnected?.Invoke();
+                        try {
+                            OnDisconnected?.Invoke();
+                        } catch (Exception) { }
                     }
                 }
                 connected = value;
@@ -168,15 +176,15 @@ namespace ALttPREffectProcessor {
                 }
             }
 
-            HashSet<string> typesInProgress = effectQueue.Where(x => x.Status == EffectStatus.InProgress).Select(x => x.Code).ToHashSet();
+            HashSet<string> typesInProgress = effectQueue.Where(x => x.Status == EffectStatus.InProgress).Select(x => x.Category).ToHashSet();
 
             foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.Unstarted)) {
-                if (typesInProgress.Contains(effect.Code)) continue;
+                if (typesInProgress.Contains(effect.Category)) continue;
                 try {
                     await effect.Start(state);
                     OnEffectStatusChange?.Invoke(effect.Data.Clone());
                     if (effect.Status == EffectStatus.InProgress) {
-                        typesInProgress.Add(effect.Code);
+                        typesInProgress.Add(effect.Category);
                     }
                     Connected = true;
                 } catch (SnesException) {
