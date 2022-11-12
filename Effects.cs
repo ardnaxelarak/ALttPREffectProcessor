@@ -338,6 +338,37 @@ namespace ALttPREffectProcessor {
         };
     }
 
+    [ALttPREffect("empty_bottles", "Empty Bottles", instantaneous: true)]
+    internal sealed class EmptyBottles : Effect {
+        private async Task<bool> HasFilledBottle(EffectData data) {
+            if (data.Count < 1) return false;
+            return !await SnesController.Instance.CheckMemory(new() {
+                [Addresses.Bottle1] = new(x => x == 0x00 || x == 0x02),
+                [Addresses.Bottle2] = new(x => x == 0x00 || x == 0x02),
+                [Addresses.Bottle3] = new(x => x == 0x00 || x == 0x02),
+                [Addresses.Bottle4] = new(x => x == 0x00 || x == 0x02),
+            });
+        }
+
+        public override async Task<bool> CanOffer(EffectData data) {
+            if (!await base.CanOffer(data)) return false;
+            return await HasFilledBottle(data);
+        }
+
+        protected override async Task<bool> FailStartUnless(EffectData data) {
+            if (!await base.FailStartUnless(data)) return false;
+            return await HasFilledBottle(data);
+        }
+
+        [ProcessStart]
+        private static readonly Dictionary<DataAddress, MemoryUpdate> apply = new() {
+            [Addresses.Bottle1] = new(x => x == 0x00 ? 0x00 : 0x02),
+            [Addresses.Bottle2] = new(x => x == 0x00 ? 0x00 : 0x02),
+            [Addresses.Bottle3] = new(x => x == 0x00 ? 0x00 : 0x02),
+            [Addresses.Bottle4] = new(x => x == 0x00 ? 0x00 : 0x02),
+        };
+    }
+
     [ALttPREffect("buff_sword", "Buff Sword", category: "sword_modifier")]
     internal sealed class BuffSword : Effect {
         [CanOffer, FailStartUnless]
@@ -365,7 +396,8 @@ namespace ALttPREffectProcessor {
 
         [ProcessStart]
         private static readonly Dictionary<DataAddress, MemoryUpdate> turnOn = new() {
-            [Addresses.SwordModifier] = new(0xFD),
+            [Addresses.Sword] = new(),
+            [Addresses.SwordModifier] = new((_, other) => 0x101 - other(Addresses.Sword)),
         };
 
         [ProcessEnd, ProcessCancel, ProcessClear]
@@ -383,7 +415,8 @@ namespace ALttPREffectProcessor {
 
         [ProcessStart]
         private static readonly Dictionary<DataAddress, MemoryUpdate> turnOn = new() {
-            [Addresses.ArmorModifier] = new(0xFE),
+            [Addresses.Armor] = new(),
+            [Addresses.ArmorModifier] = new((_, other) => 0x100 - other(Addresses.Armor)),
         };
 
         [ProcessEnd, ProcessCancel, ProcessClear]
@@ -401,7 +434,8 @@ namespace ALttPREffectProcessor {
 
         [ProcessStart]
         private static readonly Dictionary<DataAddress, MemoryUpdate> turnOn = new() {
-            [Addresses.MagicModifier] = new(0xFE),
+            [Addresses.MagicUsage] = new(),
+            [Addresses.MagicModifier] = new((_, other) => 0x100 - other(Addresses.MagicUsage)),
         };
 
         [ProcessEnd, ProcessCancel, ProcessClear]

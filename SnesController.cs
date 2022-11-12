@@ -169,7 +169,7 @@ namespace ALttPREffectProcessor {
 
             lastState = state;
 
-            foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.InProgress)) {
+            foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.InProgress).ToList()) {
                 try {
                     await effect.Step(state, elapsed);
                     OnEffectStatusChange?.Invoke(effect.Data.Clone());
@@ -181,7 +181,7 @@ namespace ALttPREffectProcessor {
 
             HashSet<string> typesInProgress = new(effectQueue.Where(x => x.Status == EffectStatus.InProgress).Select(x => x.Category));
 
-            foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.Unstarted)) {
+            foreach (var effect in effectQueue.Where(x => x.Status == EffectStatus.Unstarted).ToList()) {
                 if (typesInProgress.Contains(effect.Category)) continue;
                 try {
                     await effect.Start(state);

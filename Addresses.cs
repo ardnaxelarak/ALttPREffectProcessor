@@ -20,6 +20,10 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress Boots = new(0xF355, 1);
         public static readonly DataAddress Sword = new(0xF359, 1);
         public static readonly DataAddress Armor = new(0xF35B, 1);
+        public static readonly DataAddress Bottle1 = new(0xF35C, 1);
+        public static readonly DataAddress Bottle2 = new(0xF35D, 1);
+        public static readonly DataAddress Bottle3 = new(0xF35E, 1);
+        public static readonly DataAddress Bottle4 = new(0xF35F, 1);
         public static readonly DataAddress Rupees = new(0xF360, 2);
         public static readonly DataAddress MaxHealth = new(0xF36C, 1);
         public static readonly DataAddress CurrentHealth = new(0xF36D, 1);
