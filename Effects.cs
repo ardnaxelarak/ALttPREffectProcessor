@@ -118,7 +118,7 @@ namespace ALttPREffectProcessor {
     internal sealed class EquipMirror : Effect {
         [FailStartUnless]
         private static readonly Dictionary<DataAddress, MemoryCondition> conditions = new() {
-            [Addresses.YAction] = new(0x14),
+            [Addresses.YAction] = new(x => x != 0x14),
         };
 
         [ProcessStart]
@@ -157,7 +157,7 @@ namespace ALttPREffectProcessor {
     [ALttPREffect("force_flute", "Force Flute", instantaneous: true)]
     internal sealed class ForceFlute : Effect {
         [FailStartUnless]
-        private static readonly Dictionary<DataAddress, MemoryCondition> inDungeonCondition = new() {
+        private static readonly Dictionary<DataAddress, MemoryCondition> inLightWorldOverworldCondition = new() {
             [Addresses.GameState] = new(x => (x & 0xFF) == 0x09),
             [Addresses.World] = new(0x00),
         };
