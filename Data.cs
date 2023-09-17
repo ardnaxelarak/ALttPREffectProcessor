@@ -14,6 +14,7 @@ namespace ALttPREffectProcessor {
         public string Id { get; set; } = "";
         public string EffectCode { get; set; } = "";
         public string EffectTitle { get; set; } = "";
+        public string Redeemer { get; set; } = "";
         public EffectStatus Status { get; set; } = EffectStatus.Unknown;
         public TimeSpan Duration { get; set; } = TimeSpan.Zero;
         public TimeSpan Remaining { get; set; } = TimeSpan.Zero;

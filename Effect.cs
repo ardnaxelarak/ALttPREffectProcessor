@@ -13,7 +13,7 @@ namespace ALttPREffectProcessor {
             [Addresses.DoorState] = new(0x00),
         };
 
-        private static Dictionary<string, Effect> Effects = LoadEffectList();
+        private readonly static Dictionary<string, Effect> Effects = LoadEffectList();
 
         private readonly Dictionary<DataAddress, MemoryCondition> canOffer = new();
         private readonly Dictionary<DataAddress, MemoryCondition> failStartUnless = new();
@@ -290,8 +290,12 @@ namespace ALttPREffectProcessor {
             return Effects.Values.ToList();
         }
 
-        public static Effect GetEffect(string code) {
-            return Effects[code];
+        public static Effect? GetEffect(string code) {
+            if (Effects.ContainsKey(code)) {
+                return Effects[code];
+            } else {
+                return null;
+            }
         }
 
         public static bool HasEffect(string code) {

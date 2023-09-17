@@ -104,13 +104,27 @@ namespace ALttPREffectProcessor {
     internal sealed class DeactivateFlute : Effect {
         [CanOffer, FailStartUnless]
         private static readonly Dictionary<DataAddress, MemoryCondition> conditions = new() {
-            [Addresses.Swap1] = new(x => (x & 0x01) > 0),
+            [Addresses.InventoryTracking] = new(x => (x & 0x01) > 0),
         };
 
         [ProcessStart]
         private static readonly Dictionary<DataAddress, MemoryUpdate> apply = new() {
-            [Addresses.Swap1] = new(x => (x & ~0x03) | 0x02),
+            [Addresses.InventoryTracking] = new(x => (x & ~0x03) | 0x02),
             [Addresses.Flute] = new(0x02),
+        };
+    }
+
+    [ALttPREffect("activate_flute", "Activate Flute", instantaneous: true), NoCheckDoorState]
+    internal sealed class ActivateFlute : Effect {
+        [CanOffer, FailStartUnless]
+        private static readonly Dictionary<DataAddress, MemoryCondition> conditions = new() {
+            [Addresses.InventoryTracking] = new(x => (x & 0x02) > 0),
+        };
+
+        [ProcessStart]
+        private static readonly Dictionary<DataAddress, MemoryUpdate> apply = new() {
+            [Addresses.InventoryTracking] = new(x => (x & ~0x03) | 0x01),
+            [Addresses.Flute] = new(0x03),
         };
     }
 

@@ -15,8 +15,11 @@ namespace ALttPREffectProcessor {
             data.EffectTitle = OverlayTitle;
         }
 
-        public static EffectInstance GetEffect(EffectData data) {
-            Effect effect = Effect.GetEffect(data.EffectCode);
+        public static EffectInstance? GetEffect(EffectData data) {
+            Effect? effect = Effect.GetEffect(data.EffectCode);
+            if (effect is null) {
+                return null;
+            }
             return new EffectInstance(effect, data);
         }
 

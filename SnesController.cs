@@ -84,9 +84,11 @@ namespace ALttPREffectProcessor {
         }
 
         public void AddEffect(EffectData data) {
-            EffectInstance effect = EffectInstance.GetEffect(data);
-            effectQueue.Add(effect);
-            OnEffectStatusChange?.Invoke(effect.Data.Clone());
+            EffectInstance? effect = EffectInstance.GetEffect(data);
+            if (effect is not null) {
+                effectQueue.Add(effect);
+                OnEffectStatusChange?.Invoke(effect.Data.Clone());
+            }
         }
 
         public async Task CancelAll() {
@@ -153,7 +155,13 @@ namespace ALttPREffectProcessor {
 
         private async Task Loop(TimeSpan elapsed) {
             int state;
+            DeviceInfo info;
             try {
+                info = await snes.Info();
+                if (info.Rom.Trim('\0') == "/sd2snes/m3nu.bin") {
+                    Connected = true;
+                    return;
+                }
                 state = await memory.ReadInt(Addresses.GameState);
                 Connected = true;
             } catch (SnesException) {
@@ -161,7 +169,7 @@ namespace ALttPREffectProcessor {
                 return;
             }
 
-            if (UNSTARTED.Contains(lastState & 0xFF) && !UNSTARTED.Contains(state & 0xFF)) {
+            if (UNSTARTED.Contains(lastState & 0xFF) && !UNSTARTED.Contains(state & 0xFF) && (state & 0xFF) < 0x1C) {
                 OnGameStart?.Invoke();
             } else if (!FINISHED.Contains(lastState & 0xFF) && FINISHED.Contains(state & 0xFF)) {
                 OnGameFinish?.Invoke();
