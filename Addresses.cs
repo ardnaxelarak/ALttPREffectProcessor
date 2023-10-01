@@ -15,6 +15,7 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress Tempbunny = new(0x03F5, 2);
         public static readonly DataAddress DungeonId = new(0x040C, 1);
         public static readonly DataAddress World = new(0x0FFF, 1);
+        public static readonly DataAddress SramEquipment = new(0xF340, 0x50);
         public static readonly DataAddress Bow = new(0xF340, 1);
         public static readonly DataAddress Boomerang = new(0xF341, 1);
         public static readonly DataAddress Hookshot = new(0xF342, 1);

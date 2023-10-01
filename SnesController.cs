@@ -12,6 +12,7 @@ namespace ALttPREffectProcessor {
         private static readonly List<int> PORTS = new() { 64213, 23074, 8080 };
         private static readonly List<int> UNSTARTED = new() { 0x00, 0x01, 0x02, 0x03, 0x04, 0x14 };
         private static readonly List<int> FINISHED = new() { 0x19, 0x1A };
+        private static readonly List<int> INGAME = new() { 0x07, 0x09, 0x0B };
 
         private static readonly SnesController instance = new();
 
@@ -22,6 +23,7 @@ namespace ALttPREffectProcessor {
         private readonly List<EffectInstance> effectQueue = new();
         private readonly List<DeviceWrite> writes = new();
         private readonly MemoryCacher memory;
+        private Tracking? tracking;
         private bool connected = false;
 
         public event Action<EffectData>? OnEffectStatusChange;
@@ -67,6 +69,11 @@ namespace ALttPREffectProcessor {
             return false;
         }
 
+        public Tracking GetTracking() {
+            tracking ??= new(this);
+            return tracking;
+        }
+
         public async Task Main(CancellationToken token) {
             var stopwatch = new Stopwatch();
             while (!token.IsCancellationRequested) {
@@ -81,6 +88,7 @@ namespace ALttPREffectProcessor {
                     await Task.Delay(TimeSpan.FromSeconds(0.05), token);
                 } catch (TaskCanceledException) { }
             }
+            Connected = false;
         }
 
         public void AddEffect(EffectData data) {
@@ -110,6 +118,10 @@ namespace ALttPREffectProcessor {
             await FlushWrites();
         }
 
+        internal async Task<int> ReadMemory(DataAddress address) {
+            return await memory.ReadInt(address);
+        }
+
         internal async Task<bool> CheckMemory(Dictionary<DataAddress, MemoryCondition> dict) {
             if (dict.Count == 0) return true;
             Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => memory.ReadInt(key));
@@ -135,9 +147,9 @@ namespace ALttPREffectProcessor {
             }
         }
 
-        private bool Connected {
+        public bool Connected {
             get => connected;
-            set {
+            private set {
                 if (connected != value) {
                     if (value) {
                         try {
@@ -173,6 +185,14 @@ namespace ALttPREffectProcessor {
                 OnGameStart?.Invoke();
             } else if (!FINISHED.Contains(lastState & 0xFF) && FINISHED.Contains(state & 0xFF)) {
                 OnGameFinish?.Invoke();
+            }
+
+            if (tracking != null && INGAME.Contains(state & 0xFF)) {
+                List<DataAddress> data = tracking.GetReads();
+                Dictionary<DataAddress, Task<byte[]>> awaitValues = data.ToDictionary(key => key, key => memory.ReadBytes(key));
+                await Task.WhenAll(awaitValues.Values);
+                Dictionary<DataAddress, byte[]> values = awaitValues.Keys.ToDictionary(key => key, key => awaitValues[key].Result);
+                tracking.SetReads(values);
             }
 
             lastState = state;
