@@ -3,10 +3,9 @@ using System.Collections.Generic;
 
 namespace ALttPREffectProcessor {
     public class Tracking {
-        private readonly SnesController snes;
         private readonly TrackingCache cache = new();
 
-        public event Action OnReceiveUpdate;
+        public event Action? OnReceiveUpdate;
 
         public IEquipment Bow { get; private set; }
         public IEquipment SilverArrows { get; private set; }
@@ -41,8 +40,12 @@ namespace ALttPREffectProcessor {
         public IEquipment Armor { get; private set; }
         public IEquipment MagicUsage { get; private set; }
 
-        public Tracking(SnesController snes) {
-            this.snes = snes;
+        public IEquipmentMap<Dungeon> SmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon> BigKey { get; private set; }
+        public IEquipmentMap<Dungeon> Map { get; private set; }
+        public IEquipmentMap<Dungeon> Compass { get; private set; }
+
+        public Tracking() {
             Bow = new BitmaskEquipment(cache, Addresses.BowTracking, 0x80);
             SilverArrows = new BitmaskEquipment(cache, Addresses.BowTracking, 0x40);
             BlueBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x80);
@@ -80,11 +83,17 @@ namespace ALttPREffectProcessor {
             Shield = new ValueEquipment(cache, Addresses.Shield);
             Armor = new ValueEquipment(cache, Addresses.Armor);
             MagicUsage = new ValueEquipment(cache, Addresses.MagicUsage);
+
+            SmallKeys = new SmallKeysEquipment(cache);
+            BigKey = new DungeonItemEquipment(cache, Addresses.BigKey);
+            Map = new DungeonItemEquipment(cache, Addresses.Map);
+            Compass = new DungeonItemEquipment(cache, Addresses.Compass);
         }
 
         internal List<DataAddress> GetReads() {
             return new() {
                 Addresses.SramEquipment,
+                Addresses.ChestSmallKeys,
                 Addresses.InfiniteBombs,
             };
         }

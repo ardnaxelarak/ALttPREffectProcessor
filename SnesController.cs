@@ -70,7 +70,7 @@ namespace ALttPREffectProcessor {
         }
 
         public Tracking GetTracking() {
-            tracking ??= new(this);
+            tracking ??= new();
             return tracking;
         }
 

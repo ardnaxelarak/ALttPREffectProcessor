@@ -77,6 +77,7 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress ProgressIndicator = new(0xF3C5, 1);
         public static readonly DataAddress MapIcons = new(0xF3C6, 1);
         public static readonly DataAddress Timer = new(0xF43E, 4);
+        public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 14);
         public static readonly DataAddress SwordModifier = new(0x150C0, 1);
         public static readonly DataAddress ArmorModifier = new(0x150C2, 1);
         public static readonly DataAddress MagicModifier = new(0x150C3, 1);

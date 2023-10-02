@@ -10,6 +10,23 @@ namespace ALttPREffectProcessor {
         Failed,
     }
 
+    public enum Dungeon {
+        Sewers = 0,
+        HyruleCastle = 1,
+        EasternPalace = 2,
+        DesertPalace = 3,
+        CastleTower = 4,
+        SwampPalace = 5,
+        PalaceOfDarkness = 6,
+        MiseryMire = 7,
+        SkullWoods = 8,
+        IcePalace = 9,
+        TowerOfHera = 10,
+        ThievesTown = 11,
+        TurtleRock = 12,
+        GanonsTower = 13,
+    }
+
     public class EffectData : ICloneable {
         public string Id { get; set; } = "";
         public string EffectCode { get; set; } = "";
