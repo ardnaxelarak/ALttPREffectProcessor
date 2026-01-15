@@ -40,10 +40,11 @@ namespace ALttPREffectProcessor {
         public IEquipment Armor { get; private set; }
         public IEquipment MagicUsage { get; private set; }
 
-        public IEquipmentMap<Dungeon> SmallKeys { get; private set; }
-        public IEquipmentMap<Dungeon> BigKey { get; private set; }
-        public IEquipmentMap<Dungeon> Map { get; private set; }
-        public IEquipmentMap<Dungeon> Compass { get; private set; }
+        public IEquipmentMap<Dungeon, int> SmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon, int> BigKey { get; private set; }
+        public IEquipmentMap<Dungeon, int> Map { get; private set; }
+        public IEquipmentMap<Dungeon, int> Compass { get; private set; }
+        public IEquipmentMap<Dungeon, int> Bosses { get; private set; }
 
         public Tracking() {
             Bow = new BitmaskEquipment(cache, Addresses.BowTracking, 0x80);
@@ -66,10 +67,10 @@ namespace ALttPREffectProcessor {
             BugNet = new ValueEquipment(cache, Addresses.BugNet);
             Book = new ValueEquipment(cache, Addresses.Book);
             BottleCount = new CustomEquipment(cache, get => {
-                return get(Addresses.Bottle1) > 0 ? 1 : 0
-                    + get(Addresses.Bottle2) > 0 ? 1 : 0
-                    + get(Addresses.Bottle3) > 0 ? 1 : 0
-                    + get(Addresses.Bottle4) > 0 ? 1 : 0;
+                return (get(Addresses.Bottle1) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle2) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle3) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle4) > 0 ? 1 : 0);
             });
             Somaria = new ValueEquipment(cache, Addresses.Somaria);
             Byrna = new ValueEquipment(cache, Addresses.Byrna);
@@ -88,11 +89,17 @@ namespace ALttPREffectProcessor {
             BigKey = new DungeonItemEquipment(cache, Addresses.BigKey);
             Map = new DungeonItemEquipment(cache, Addresses.Map);
             Compass = new DungeonItemEquipment(cache, Addresses.Compass);
+            Bosses = new DungeonBossEquipment(cache);
         }
 
         internal List<DataAddress> GetReads() {
             return new() {
+                Addresses.RoomData,
+                Addresses.OverworldData,
                 Addresses.SramEquipment,
+                Addresses.ProgressFlags,
+                Addresses.ProgressIndicator3,
+                Addresses.NpcFlags,
                 Addresses.ChestSmallKeys,
                 Addresses.InfiniteBombs,
             };
@@ -101,6 +108,10 @@ namespace ALttPREffectProcessor {
         internal void SetReads(Dictionary<DataAddress, byte[]> reads) {
             cache.Update(reads);
             OnReceiveUpdate?.Invoke();
+        }
+
+        public byte GetWramByte(int address) {
+            return cache.ReadWramByte(address);
         }
     }
 }

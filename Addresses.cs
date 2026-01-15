@@ -15,6 +15,23 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress Tempbunny = new(0x03F5, 2);
         public static readonly DataAddress DungeonId = new(0x040C, 1);
         public static readonly DataAddress World = new(0x0FFF, 1);
+        public static readonly DataAddress RoomData = new(0xF000, 0x250);
+
+        public static readonly DataAddress EasternBoss = new(0xF000 + 0xC8 * 2, 2);
+        public static readonly DataAddress DesertBoss = new(0xF000 + 0x33 * 2, 2);
+        public static readonly DataAddress HeraBoss = new(0xF000 + 0x07 * 2, 2);
+        public static readonly DataAddress CastleTowerBoss = new(0xF000 + 0x20 * 2, 2);
+        public static readonly DataAddress DarknessBoss = new(0xF000 + 0x5A * 2, 2);
+        public static readonly DataAddress SwampBoss = new(0xF000 + 0x06 * 2, 2);
+        public static readonly DataAddress SkullBoss = new(0xF000 + 0x29 * 2, 2);
+        public static readonly DataAddress ThievesBoss = new(0xF000 + 0xAC * 2, 2);
+        public static readonly DataAddress IceBoss = new(0xF000 + 0xDE * 2, 2);
+        public static readonly DataAddress MireBoss = new(0xF000 + 0x90 * 2, 2);
+        public static readonly DataAddress TurtleBoss = new(0xF000 + 0xA4 * 2, 2);
+        public static readonly DataAddress GanonsTowerBoss = new(0xF000 + 0x0D * 2, 2);
+
+        public static readonly DataAddress OverworldData = new(0xF280, 0x82);
+
         public static readonly DataAddress SramEquipment = new(0xF340, 0x50);
         public static readonly DataAddress Bow = new(0xF340, 1);
         public static readonly DataAddress Boomerang = new(0xF341, 1);
@@ -75,7 +92,10 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress SpecialWeaponLevel = new(0xF3C3, 1);
         public static readonly DataAddress ItemOnB = new(0xF3C4, 1);
         public static readonly DataAddress ProgressIndicator = new(0xF3C5, 1);
-        public static readonly DataAddress MapIcons = new(0xF3C6, 1);
+        public static readonly DataAddress ProgressFlags = new(0xF3C6, 1);
+        public static readonly DataAddress MapIcons = new(0xF3C7, 1);
+        public static readonly DataAddress ProgressIndicator3 = new(0xF3C9, 1);
+        public static readonly DataAddress NpcFlags = new(0xF410, 2);
         public static readonly DataAddress Timer = new(0xF43E, 4);
         public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 14);
         public static readonly DataAddress SwordModifier = new(0x150C0, 1);

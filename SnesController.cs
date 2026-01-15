@@ -12,11 +12,12 @@ namespace ALttPREffectProcessor {
         private static readonly List<int> PORTS = new() { 64213, 23074, 8080 };
         private static readonly List<int> UNSTARTED = new() { 0x00, 0x01, 0x02, 0x03, 0x04, 0x14 };
         private static readonly List<int> FINISHED = new() { 0x19, 0x1A };
-        private static readonly List<int> INGAME = new() { 0x07, 0x09, 0x0B };
+        private static readonly List<int> INGAME = new() { 0x06, 0x07, 0x08, 0x09, 0x0B, 0x0E, 0x13, 0x18 };
 
         private static readonly SnesController instance = new();
 
         private readonly Snes snes;
+        private string hostname;
         private int? port;
         private string? device;
         private int lastState = 0;
@@ -36,7 +37,12 @@ namespace ALttPREffectProcessor {
             get => instance;
         }
 
-        private SnesController() {
+        public static SnesController GetInstance(string hostname = "localhost") {
+            return new(hostname);
+        }
+
+        private SnesController(string hostname = "localhost") {
+            this.hostname = hostname;
             memory = new(ReadInternal);
             snes = new();
             snes.SetTimeout(TimeSpan.FromSeconds(1));
@@ -282,7 +288,7 @@ namespace ALttPREffectProcessor {
         }
 
         private async Task ConnectToPort(int port) {
-            await snes.Connect($"ws://localhost:{port}");
+            await snes.Connect($"ws://{hostname}:{port}");
         }
 
         private async Task TryReattach() {

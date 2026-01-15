@@ -18,6 +18,15 @@ namespace ALttPREffectProcessor {
             }
         }
 
+        public byte ReadWramByte(int addr) {
+            int realAddress = 0xF50000 + addr;
+            if (memoryCache.TryGetValue(realAddress, out byte result)) {
+                return result;
+            } else {
+                throw new MemoryNotCachedException(new() { realAddress });
+            }
+        }
+
         public byte[] ReadBytes(DataAddress addr) {
             int realAddress = GetRealAddress(addr);
             List<int> uncached = Enumerable.Range(realAddress, addr.size).Where(address => !memoryCache.ContainsKey(address)).ToList();
