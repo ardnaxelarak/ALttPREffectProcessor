@@ -13,46 +13,38 @@ namespace ALttPREffectProcessor {
         }
 
         public void Clear() {
-            memoryCache.Clear();
+            this.memoryCache.Clear();
         }
 
         public async Task Cache(DataAddress addr) {
             int realAddress = GetRealAddress(addr);
-            List<byte> result = await memoryReader(realAddress, addr.size);
+            List<byte> result = await this.memoryReader(realAddress, addr.size);
             for (int i = 0; i < result.Count; i++) {
-                memoryCache[realAddress + i] = result[i];
+                this.memoryCache[realAddress + i] = result[i];
             }
         }
 
-        public async Task<byte[]> ReadBytes(DataAddress addr) {
+        public async Task<byte[]> ReadBytes(DataAddress addr, int offset = 0) {
             int realAddress = GetRealAddress(addr);
-            if (!Enumerable.Range(realAddress, addr.size).All(address => memoryCache.ContainsKey(address))) {
+            if (!Enumerable.Range(realAddress + offset, addr.size - offset).All(address => this.memoryCache.ContainsKey(address))) {
                 await Cache(addr);
             }
-            return Enumerable.Range(realAddress, addr.size).Select(address => memoryCache[address]).ToArray();
+            return Enumerable.Range(realAddress + offset, addr.size - offset).Select(address => this.memoryCache[address]).ToArray();
         }
 
-        public async Task<int> ReadInt(DataAddress addr) {
-            byte[] result = await ReadBytes(addr);
+        public async Task<int> ReadFixedInt(DataAddress addr, int size, int offset = 0) {
+            byte[] result = await this.ReadBytes(addr, offset);
 
             int value = 0;
-            for (int i = 0; i < Math.Min(result.Length, 4); i++) {
+            for (int i = 0; i < Math.Min(result.Length, size); i++) {
                 value |= result[i] << (8 * i);
             }
             return value;
         }
 
-        public async Task<long> ReadLong(DataAddress addr) {
-            byte[] result = await ReadBytes(addr);
+        public async Task<int> ReadInt(DataAddress addr) => await this.ReadFixedInt(addr, 4);
 
-            int value = 0;
-            for (int i = 0; i < Math.Min(result.Length, 8); i++) {
-                value |= result[i] << (8 * i);
-            }
-            return value;
-        }
-
-        private int GetRealAddress(DataAddress addr) {
+        private static int GetRealAddress(DataAddress addr) {
             return addr.bank switch {
                 DataBank.Rom => addr.address,
                 _ => 0xF50000 + addr.address,

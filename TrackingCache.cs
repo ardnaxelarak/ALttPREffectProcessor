@@ -9,54 +9,44 @@ namespace ALttPREffectProcessor {
         public TrackingCache() { }
 
         public void Update(Dictionary<DataAddress, byte[]> values) {
-            memoryCache.Clear();
+            this.memoryCache.Clear();
             foreach (KeyValuePair<DataAddress, byte[]> kvp in values) {
                 int realAddress = GetRealAddress(kvp.Key);
                 for (int i = 0; i < kvp.Value.Length; i++) {
-                    memoryCache[realAddress + i] = kvp.Value[i];
+                    this.memoryCache[realAddress + i] = kvp.Value[i];
                 }
             }
         }
 
         public byte ReadWramByte(int addr) {
             int realAddress = 0xF50000 + addr;
-            if (memoryCache.TryGetValue(realAddress, out byte result)) {
+            if (this.memoryCache.TryGetValue(realAddress, out byte result)) {
                 return result;
             } else {
                 throw new MemoryNotCachedException(new() { realAddress });
             }
         }
 
-        public byte[] ReadBytes(DataAddress addr) {
+        public byte[] ReadBytes(DataAddress addr, int offset = 0) {
             int realAddress = GetRealAddress(addr);
-            List<int> uncached = Enumerable.Range(realAddress, addr.size).Where(address => !memoryCache.ContainsKey(address)).ToList();
+            List<int> uncached = Enumerable.Range(realAddress + offset, addr.size - offset).Where(address => !this.memoryCache.ContainsKey(address)).ToList();
             if (uncached.Count > 0) {
                 throw new MemoryNotCachedException(uncached);
             }
-            return Enumerable.Range(realAddress, addr.size).Select(address => memoryCache[address]).ToArray();
+            return Enumerable.Range(realAddress + offset, addr.size - offset).Select(address => this.memoryCache[address]).ToArray();
         }
 
-        public int ReadInt(DataAddress addr) {
-            byte[] result = ReadBytes(addr);
+        public int ReadFixedInt(DataAddress addr, int size, int offset = 0) {
+            byte[] result = this.ReadBytes(addr, offset);
 
             int value = 0;
-            for (int i = 0; i < Math.Min(result.Length, 4); i++) {
+            for (int i = 0; i < Math.Min(result.Length, size); i++) {
                 value |= result[i] << (8 * i);
             }
             return value;
         }
 
-        public long ReadLong(DataAddress addr) {
-            byte[] result = ReadBytes(addr);
-
-            int value = 0;
-            for (int i = 0; i < Math.Min(result.Length, 8); i++) {
-                value |= result[i] << (8 * i);
-            }
-            return value;
-        }
-
-        private int GetRealAddress(DataAddress addr) {
+        private static int GetRealAddress(DataAddress addr) {
             return addr.bank switch {
                 DataBank.Rom => addr.address,
                 _ => 0xF50000 + addr.address,

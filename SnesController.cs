@@ -194,7 +194,7 @@ namespace ALttPREffectProcessor {
             }
 
             if (tracking != null && INGAME.Contains(state & 0xFF)) {
-                List<DataAddress> data = tracking.GetReads();
+                HashSet<DataAddress> data = new(tracking.GetReads());
                 Dictionary<DataAddress, Task<byte[]>> awaitValues = data.ToDictionary(key => key, key => memory.ReadBytes(key));
                 await Task.WhenAll(awaitValues.Values);
                 Dictionary<DataAddress, byte[]> values = awaitValues.Keys.ToDictionary(key => key, key => awaitValues[key].Result);
@@ -292,7 +292,7 @@ namespace ALttPREffectProcessor {
         }
 
         private async Task TryReattach() {
-            if (snes.State != System.Net.WebSockets.WebSocketState.Open) {
+            if (snes.State != WebSocketState.Open) {
                 await ConnectInternal();
             } 
             if (device is not null || await PickDevice()) {

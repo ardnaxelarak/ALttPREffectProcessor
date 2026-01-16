@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ALttPREffectProcessor {
+﻿namespace ALttPREffectProcessor {
     internal static class Addresses {
         public static readonly DataAddress GameState = new(0x10, 2);
         public static readonly DataAddress YBBitfield = new(0x3A, 1);
@@ -89,6 +87,7 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress GenericSmallKeys = new(0xF38B, 1);
         public static readonly DataAddress InventoryTracking = new(0xF38C, 2);
         public static readonly DataAddress BowTracking = new(0xF38E, 2);
+        public static readonly DataAddress FluteBitfield = new(0xF3C2, 1);
         public static readonly DataAddress SpecialWeaponLevel = new(0xF3C3, 1);
         public static readonly DataAddress ItemOnB = new(0xF3C4, 1);
         public static readonly DataAddress ProgressIndicator = new(0xF3C5, 1);
@@ -97,7 +96,9 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress ProgressIndicator3 = new(0xF3C9, 1);
         public static readonly DataAddress NpcFlags = new(0xF410, 2);
         public static readonly DataAddress Timer = new(0xF43E, 4);
-        public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 14);
+        public static readonly DataAddress DungeonLocationsChecked = new(0xF4B0, 32);
+        public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 16);
+        public static readonly DataAddress AllSmallKeys = new(0xF4F1, 13);
         public static readonly DataAddress SwordModifier = new(0x150C0, 1);
         public static readonly DataAddress ArmorModifier = new(0x150C2, 1);
         public static readonly DataAddress MagicModifier = new(0x150C3, 1);
@@ -111,6 +112,9 @@ namespace ALttPREffectProcessor {
         public static readonly DataAddress BootsModifier = new(0x150CE, 1);
 
         public static readonly DataAddress SpecialWeapons = new(0x30802F, 1, DataBank.Rom);
+        public static readonly DataAddress Pseudoboots = new(0x30808E, 1, DataBank.Rom);
+        public static readonly DataAddress DungeonCheckTotals = new(0x30F040, 32, DataBank.Rom);
+        public static readonly DataAddress ChestKeyTotals = new(0x30F010, 16, DataBank.Rom);
     }
 
     internal enum DataBank {
@@ -118,7 +122,7 @@ namespace ALttPREffectProcessor {
         Rom = 1,
     }
 
-    internal struct DataAddress {
+    internal readonly struct DataAddress {
         public readonly int address;
         public readonly int size;
         public readonly DataBank bank;

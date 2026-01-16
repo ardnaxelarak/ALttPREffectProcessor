@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace ALttPREffectProcessor {
+    using System;
+    using System.Collections.Generic;
 
-namespace ALttPREffectProcessor {
     public class Tracking {
         private readonly TrackingCache cache = new();
 
@@ -40,56 +40,78 @@ namespace ALttPREffectProcessor {
         public IEquipment Armor { get; private set; }
         public IEquipment MagicUsage { get; private set; }
 
-        public IEquipmentMap<Dungeon, int> SmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon, int> ChestSmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon, int> AllSmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon, int> LocationsChecked { get; private set; }
         public IEquipmentMap<Dungeon, int> BigKey { get; private set; }
         public IEquipmentMap<Dungeon, int> Map { get; private set; }
         public IEquipmentMap<Dungeon, int> Compass { get; private set; }
         public IEquipmentMap<Dungeon, int> Bosses { get; private set; }
 
-        public Tracking() {
-            Bow = new BitmaskEquipment(cache, Addresses.BowTracking, 0x80);
-            SilverArrows = new BitmaskEquipment(cache, Addresses.BowTracking, 0x40);
-            BlueBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x80);
-            RedBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x40);
-            Hookshot = new ValueEquipment(cache, Addresses.Hookshot);
-            Bombs = new CustomEquipment(cache, get => (get(Addresses.Bombs) > 0 || get(Addresses.InfiniteBombs) > 0) ? 1 : 0);
-            Mushroom = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x20);
-            Powder = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x10);
-            FireRod = new ValueEquipment(cache, Addresses.FireRod);
-            IceRod = new ValueEquipment(cache, Addresses.IceRod);
-            Bombos = new ValueEquipment(cache, Addresses.Bombos);
-            Ether = new ValueEquipment(cache, Addresses.Ether);
-            Quake = new ValueEquipment(cache, Addresses.Quake);
-            Lamp = new ValueEquipment(cache, Addresses.Lamp);
-            Hammer = new ValueEquipment(cache, Addresses.Hammer);
-            Shovel = new BitmaskEquipment(cache, Addresses.InventoryTracking, 0x04);
-            Flute = new CustomEquipment(cache, get => (get(Addresses.InventoryTracking) & 0x03) switch { 0 => 0, 2 => 1, _ => 2 });
-            BugNet = new ValueEquipment(cache, Addresses.BugNet);
-            Book = new ValueEquipment(cache, Addresses.Book);
-            BottleCount = new CustomEquipment(cache, get => {
-                return (get(Addresses.Bottle1) > 0 ? 1 : 0)
-                    + (get(Addresses.Bottle2) > 0 ? 1 : 0)
-                    + (get(Addresses.Bottle3) > 0 ? 1 : 0)
-                    + (get(Addresses.Bottle4) > 0 ? 1 : 0);
-            });
-            Somaria = new ValueEquipment(cache, Addresses.Somaria);
-            Byrna = new ValueEquipment(cache, Addresses.Byrna);
-            Cape = new ValueEquipment(cache, Addresses.Cape);
-            Mirror = new ValueEquipment(cache, Addresses.Mirror);
-            Gloves = new ValueEquipment(cache, Addresses.Gloves);
-            Boots = new ValueEquipment(cache, Addresses.Boots);
-            Flippers = new ValueEquipment(cache, Addresses.Flippers);
-            MoonPearl = new ValueEquipment(cache, Addresses.MoonPearl);
-            Sword = new ValueEquipment(cache, Addresses.Sword);
-            Shield = new ValueEquipment(cache, Addresses.Shield);
-            Armor = new ValueEquipment(cache, Addresses.Armor);
-            MagicUsage = new ValueEquipment(cache, Addresses.MagicUsage);
+        public IEquipmentMap<Dungeon, int> CheckTotals { get; private set; }
+        public IEquipmentMap<Dungeon, int> ChestKeyTotals { get; private set; }
 
-            SmallKeys = new SmallKeysEquipment(cache);
-            BigKey = new DungeonItemEquipment(cache, Addresses.BigKey);
-            Map = new DungeonItemEquipment(cache, Addresses.Map);
-            Compass = new DungeonItemEquipment(cache, Addresses.Compass);
+        public Tracking() {
+            Bow = new BitmaskEquipment(cache, Addresses.BowTracking, 1, 0x80);
+            SilverArrows = new BitmaskEquipment(cache, Addresses.BowTracking, 1, 0x40);
+            BlueBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x80);
+            RedBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x40);
+            Hookshot = new ValueEquipment(cache, Addresses.Hookshot, 1);
+            Bombs = new CustomEquipment(cache, get => (get(Addresses.Bombs, 1, 0) > 0 || get(Addresses.InfiniteBombs, 1, 0) > 0) ? 1 : 0);
+            Mushroom = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x20);
+            Powder = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x10);
+            FireRod = new ValueEquipment(cache, Addresses.FireRod, 1);
+            IceRod = new ValueEquipment(cache, Addresses.IceRod, 1);
+            Bombos = new ValueEquipment(cache, Addresses.Bombos, 1);
+            Ether = new ValueEquipment(cache, Addresses.Ether, 1);
+            Quake = new ValueEquipment(cache, Addresses.Quake, 1);
+            Lamp = new ValueEquipment(cache, Addresses.Lamp, 1);
+            Hammer = new ValueEquipment(cache, Addresses.Hammer, 1);
+            Shovel = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x04);
+            Flute = new CustomEquipment(cache, get => {
+                return (get(Addresses.InventoryTracking, 1, 0) & 0x03) switch {
+                    0 => 0,
+                    2 => 2,
+                    _ => get(Addresses.FluteBitfield, 1, 0) == 0 ? 3 : 1,
+                };
+            });
+            BugNet = new ValueEquipment(cache, Addresses.BugNet, 1);
+            Book = new ValueEquipment(cache, Addresses.Book, 1);
+            BottleCount = new CustomEquipment(cache, get => {
+                return (get(Addresses.Bottle1, 1, 0) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle2, 1, 0) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle3, 1, 0) > 0 ? 1 : 0)
+                    + (get(Addresses.Bottle4, 1, 0) > 0 ? 1 : 0);
+            });
+            Somaria = new ValueEquipment(cache, Addresses.Somaria, 1);
+            Byrna = new ValueEquipment(cache, Addresses.Byrna, 1);
+            Cape = new ValueEquipment(cache, Addresses.Cape, 1);
+            Mirror = new ValueEquipment(cache, Addresses.Mirror, 1);
+            Gloves = new ValueEquipment(cache, Addresses.Gloves, 1);
+            Boots = new CustomEquipment(cache, get => {
+                return get(Addresses.Boots, 1, 0) switch {
+                    0 => get(Addresses.Pseudoboots, 1, 0) > 0 ? 1 : 0,
+                    _ => 2,
+                };
+            });
+            Flippers = new ValueEquipment(cache, Addresses.Flippers, 1);
+            MoonPearl = new ValueEquipment(cache, Addresses.MoonPearl, 1);
+            Sword = new ValueEquipment(cache, Addresses.Sword, 1);
+            Shield = new ValueEquipment(cache, Addresses.Shield, 1);
+            Armor = new ValueEquipment(cache, Addresses.Armor, 1);
+            MagicUsage = new ValueEquipment(cache, Addresses.MagicUsage, 1);
+
+            ChestSmallKeys = new DungeonValueEquipment(cache, Addresses.ChestSmallKeys, 1);
+            AllSmallKeys = new DungeonNoSewersEquipment(cache, Addresses.AllSmallKeys, 1);
+            LocationsChecked = new DungeonValueEquipment(cache, Addresses.DungeonLocationsChecked, 2);
+
+            BigKey = new DungeonBitmaskEquipment(cache, Addresses.BigKey);
+            Map = new DungeonBitmaskEquipment(cache, Addresses.Map);
+            Compass = new DungeonBitmaskEquipment(cache, Addresses.Compass);
             Bosses = new DungeonBossEquipment(cache);
+
+            CheckTotals = new DungeonValueEquipment(cache, Addresses.DungeonCheckTotals, 2);
+            ChestKeyTotals = new DungeonValueEquipment(cache, Addresses.ChestKeyTotals, 1);
         }
 
         internal List<DataAddress> GetReads() {
@@ -97,21 +119,27 @@ namespace ALttPREffectProcessor {
                 Addresses.RoomData,
                 Addresses.OverworldData,
                 Addresses.SramEquipment,
+                Addresses.FluteBitfield,
                 Addresses.ProgressFlags,
                 Addresses.ProgressIndicator3,
                 Addresses.NpcFlags,
                 Addresses.ChestSmallKeys,
+                Addresses.DungeonLocationsChecked,
                 Addresses.InfiniteBombs,
+                Addresses.AllSmallKeys,
+                Addresses.Pseudoboots,
+                Addresses.DungeonCheckTotals,
+                Addresses.ChestKeyTotals,
             };
         }
 
         internal void SetReads(Dictionary<DataAddress, byte[]> reads) {
-            cache.Update(reads);
-            OnReceiveUpdate?.Invoke();
+            this.cache.Update(reads);
+            this.OnReceiveUpdate?.Invoke();
         }
 
         public byte GetWramByte(int address) {
-            return cache.ReadWramByte(address);
+            return this.cache.ReadWramByte(address);
         }
     }
 }

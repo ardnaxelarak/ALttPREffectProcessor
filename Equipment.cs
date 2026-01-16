@@ -21,55 +21,71 @@ namespace ALttPREffectProcessor {
         public abstract T Value { get; }
     }
 
+    internal sealed class ConstantEquipment : IEquipment<int> {
+        private readonly int value;
+
+        internal ConstantEquipment(int value) {
+            this.value = value;
+        }
+
+        public int Value => this.value;
+    }
+
     internal class BitmaskEquipment : Equipment<int> {
         protected readonly DataAddress addr;
         protected readonly int bitmask;
+        protected readonly int size;
 
-        internal BitmaskEquipment(TrackingCache cache, DataAddress addr, int bitmask) : base(cache) {
+        internal BitmaskEquipment(TrackingCache cache, DataAddress addr, int size, int bitmask) : base(cache) {
             this.addr = addr;
             this.bitmask = bitmask;
+            this.size = size;
         }
 
         public override int Value {
-            get => ((cache.ReadInt(addr) & bitmask) == bitmask) ? 1 : 0;
+            get => ((this.cache.ReadFixedInt(addr, size) & bitmask) == bitmask) ? 1 : 0;
         }
     }
 
     internal class ValueEquipment : Equipment<int> {
         protected readonly DataAddress addr;
+        protected readonly int size;
 
-        internal ValueEquipment(TrackingCache cache, DataAddress addr) : base(cache) {
+        internal ValueEquipment(TrackingCache cache, DataAddress addr, int size) : base(cache) {
             this.addr = addr;
+            this.size = size;
         }
 
         public override int Value {
-            get => cache.ReadInt(addr);
+            get => this.cache.ReadFixedInt(this.addr, this.size);
         }
     }
 
     internal class ValueOffsetEquipment : Equipment<int> {
         protected readonly DataAddress addr;
         protected readonly int offset;
+        protected readonly int size;
 
-        internal ValueOffsetEquipment(TrackingCache cache, DataAddress addr, int offset) : base(cache) {
+        internal ValueOffsetEquipment(TrackingCache cache, DataAddress addr, int size, int offset) : base(cache) {
             this.addr = addr;
+            this.size = size;
             this.offset = offset;
         }
 
         public override int Value {
-            get => cache.ReadBytes(addr)[offset];
+            get => this.cache.ReadFixedInt(this.addr, this.size, this.offset);
         }
     }
 
     internal class CustomEquipment : Equipment<int> {
-        protected readonly Func<Func<DataAddress, int>, int> func;
+        protected readonly Func<Func<DataAddress, int, int, int>, int> func;
 
-        internal CustomEquipment(TrackingCache cache, Func<Func<DataAddress, int>, int> func) : base(cache) {
+        internal CustomEquipment(TrackingCache cache, Func<Func<DataAddress, int, int, int>, int> func) : base(cache) {
             this.func = func;
         }
 
         public override int Value {
-            get => func.Invoke(cache.ReadInt);
+            get => func.Invoke(this.cache.ReadFixedInt);
         }
     }
 
@@ -77,50 +93,63 @@ namespace ALttPREffectProcessor {
         public IEquipment<U>? this[T key] { get; }
     }
 
-    internal class SmallKeysEquipment : IEquipmentMap<Dungeon, int> {
+    internal class DungeonValueEquipment : IEquipmentMap<Dungeon, int> {
         private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
 
-        internal SmallKeysEquipment(TrackingCache cache) {
+        internal DungeonValueEquipment(TrackingCache cache, DataAddress addr, int size) {
             foreach (Dungeon dungeon in Enum.GetValues(typeof(Dungeon))) {
-                values[dungeon] = new ValueOffsetEquipment(cache, Addresses.ChestSmallKeys, (int) dungeon);
+                this.values[dungeon] = new ValueOffsetEquipment(cache, addr, size, size * (int) dungeon);
             }
         }
 
-        public IEquipment<int>? this[Dungeon key] => values[key];
+        public IEquipment<int>? this[Dungeon key] => this.values[key];
     }
 
-    internal class DungeonItemEquipment : IEquipmentMap<Dungeon, int> {
+    internal class DungeonNoSewersEquipment : IEquipmentMap<Dungeon, int> {
         private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
 
-        internal DungeonItemEquipment(TrackingCache cache, DataAddress addr) {
+        internal DungeonNoSewersEquipment(TrackingCache cache, DataAddress addr, int size) {
             foreach (Dungeon dungeon in Enum.GetValues(typeof(Dungeon))) {
-                values[dungeon] = new BitmaskEquipment(cache, addr, 1 << (15 - (int) dungeon));
+                var dungeonID = (int) (dungeon switch { Dungeon.Sewers => Dungeon.HyruleCastle, _ => dungeon });
+                this.values[dungeon] = new ValueOffsetEquipment(cache, addr, size, size * (dungeonID - 1));
             }
         }
 
-        public IEquipment<int>? this[Dungeon key] => values[key];
+        public IEquipment<int>? this[Dungeon key] => this.values[key];
+    }
+
+    internal class DungeonBitmaskEquipment : IEquipmentMap<Dungeon, int> {
+        private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
+
+        internal DungeonBitmaskEquipment(TrackingCache cache, DataAddress addr) {
+            foreach (Dungeon dungeon in Enum.GetValues(typeof(Dungeon))) {
+                this.values[dungeon] = new BitmaskEquipment(cache, addr, 2, 1 << (15 - (int) dungeon));
+            }
+        }
+
+        public IEquipment<int>? this[Dungeon key] => this.values[key];
     }
 
     internal class DungeonBossEquipment : IEquipmentMap<Dungeon, int> {
         private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
 
         internal DungeonBossEquipment(TrackingCache cache) {
-            values[Dungeon.Sewers] = new CustomEquipment(cache, (_) => 1);
-            values[Dungeon.HyruleCastle] = new CustomEquipment(cache, (_) => 1);
-            values[Dungeon.EasternPalace] = new BitmaskEquipment(cache, Addresses.EasternBoss, 0x0800);
-            values[Dungeon.DesertPalace] = new BitmaskEquipment(cache, Addresses.DesertBoss, 0x0800);
-            values[Dungeon.TowerOfHera] = new BitmaskEquipment(cache, Addresses.HeraBoss, 0x0800);
-            values[Dungeon.CastleTower] = new BitmaskEquipment(cache, Addresses.CastleTowerBoss, 0x0800);
-            values[Dungeon.PalaceOfDarkness] = new BitmaskEquipment(cache, Addresses.DarknessBoss, 0x0800);
-            values[Dungeon.SwampPalace] = new BitmaskEquipment(cache, Addresses.SwampBoss, 0x0800);
-            values[Dungeon.SkullWoods] = new BitmaskEquipment(cache, Addresses.SkullBoss, 0x0800);
-            values[Dungeon.ThievesTown] = new BitmaskEquipment(cache, Addresses.ThievesBoss, 0x0800);
-            values[Dungeon.IcePalace] = new BitmaskEquipment(cache, Addresses.IceBoss, 0x0800);
-            values[Dungeon.MiseryMire] = new BitmaskEquipment(cache, Addresses.MireBoss, 0x0800);
-            values[Dungeon.TurtleRock] = new BitmaskEquipment(cache, Addresses.TurtleBoss, 0x0800);
-            values[Dungeon.GanonsTower] = new BitmaskEquipment(cache, Addresses.GanonsTowerBoss, 0x0800);
+            this.values[Dungeon.Sewers] = new ConstantEquipment(0);
+            this.values[Dungeon.HyruleCastle] = new ConstantEquipment(0);
+            this.values[Dungeon.EasternPalace] = new BitmaskEquipment(cache, Addresses.EasternBoss, 2, 0x0800);
+            this.values[Dungeon.DesertPalace] = new BitmaskEquipment(cache, Addresses.DesertBoss, 2, 0x0800);
+            this.values[Dungeon.TowerOfHera] = new BitmaskEquipment(cache, Addresses.HeraBoss, 2, 0x0800);
+            this.values[Dungeon.CastleTower] = new BitmaskEquipment(cache, Addresses.CastleTowerBoss, 2, 0x0800);
+            this.values[Dungeon.PalaceOfDarkness] = new BitmaskEquipment(cache, Addresses.DarknessBoss, 2, 0x0800);
+            this.values[Dungeon.SwampPalace] = new BitmaskEquipment(cache, Addresses.SwampBoss, 2, 0x0800);
+            this.values[Dungeon.SkullWoods] = new BitmaskEquipment(cache, Addresses.SkullBoss, 2, 0x0800);
+            this.values[Dungeon.ThievesTown] = new BitmaskEquipment(cache, Addresses.ThievesBoss, 2, 0x0800);
+            this.values[Dungeon.IcePalace] = new BitmaskEquipment(cache, Addresses.IceBoss, 2, 0x0800);
+            this.values[Dungeon.MiseryMire] = new BitmaskEquipment(cache, Addresses.MireBoss, 2, 0x0800);
+            this.values[Dungeon.TurtleRock] = new BitmaskEquipment(cache, Addresses.TurtleBoss, 2, 0x0800);
+            this.values[Dungeon.GanonsTower] = new BitmaskEquipment(cache, Addresses.GanonsTowerBoss, 2, 0x0800);
         }
 
-        public IEquipment<int>? this[Dungeon key] => values[key];
+        public IEquipment<int>? this[Dungeon key] => this.values[key];
     }
 }
