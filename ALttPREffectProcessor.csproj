@@ -7,9 +7,4 @@
   <ItemGroup>
     <ProjectReference Include="..\cs2snes\cs2snes.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="cs2snes">
-      <HintPath>lib\cs2snes.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

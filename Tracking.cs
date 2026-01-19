@@ -41,15 +41,16 @@
         public IEquipment MagicUsage { get; private set; }
 
         public IEquipmentMap<Dungeon, int> ChestSmallKeys { get; private set; }
-        public IEquipmentMap<Dungeon, int> AllSmallKeys { get; private set; }
+        public IEquipmentMap<Dungeon, int> DR_AllSmallKeys { get; private set; }
         public IEquipmentMap<Dungeon, int> LocationsChecked { get; private set; }
+        public IEquipmentMap<Dungeon, int> DR_DungeonCountDisplayed { get; private set; }
         public IEquipmentMap<Dungeon, int> BigKey { get; private set; }
         public IEquipmentMap<Dungeon, int> Map { get; private set; }
         public IEquipmentMap<Dungeon, int> Compass { get; private set; }
         public IEquipmentMap<Dungeon, int> Bosses { get; private set; }
 
-        public IEquipmentMap<Dungeon, int> CheckTotals { get; private set; }
-        public IEquipmentMap<Dungeon, int> ChestKeyTotals { get; private set; }
+        public IEquipmentMap<Dungeon, int> DR_CheckTotals { get; private set; }
+        public IEquipmentMap<Dungeon, int> DR_ChestKeyTotals { get; private set; }
 
         public Tracking() {
             Bow = new BitmaskEquipment(cache, Addresses.BowTracking, 1, 0x80);
@@ -102,16 +103,17 @@
             MagicUsage = new ValueEquipment(cache, Addresses.MagicUsage, 1);
 
             ChestSmallKeys = new DungeonValueEquipment(cache, Addresses.ChestSmallKeys, 1);
-            AllSmallKeys = new DungeonNoSewersEquipment(cache, Addresses.AllSmallKeys, 1);
-            LocationsChecked = new DungeonValueEquipment(cache, Addresses.DungeonLocationsChecked, 2);
+            DR_AllSmallKeys = new DungeonNoSewersEquipment(cache, Addresses.DR_AllSmallKeys, 1);
+            LocationsChecked = new VersionedDungeonValueEquipment(cache, Addresses.VT_DungeonLocationsChecked, 1, Addresses.DR_DungeonLocationsChecked, 2);
+            DR_DungeonCountDisplayed = new DungeonBitmaskEquipment(cache, Addresses.DR_DungeonCountDisplay);
 
             BigKey = new DungeonBitmaskEquipment(cache, Addresses.BigKey);
             Map = new DungeonBitmaskEquipment(cache, Addresses.Map);
             Compass = new DungeonBitmaskEquipment(cache, Addresses.Compass);
             Bosses = new DungeonBossEquipment(cache);
 
-            CheckTotals = new DungeonValueEquipment(cache, Addresses.DungeonCheckTotals, 2);
-            ChestKeyTotals = new DungeonValueEquipment(cache, Addresses.ChestKeyTotals, 1);
+            DR_CheckTotals = new DungeonValueEquipment(cache, Addresses.DR_DungeonCheckTotals, 2);
+            DR_ChestKeyTotals = new DungeonValueEquipment(cache, Addresses.DR_ChestKeyTotals, 1);
         }
 
         internal List<DataAddress> GetReads() {
@@ -122,14 +124,17 @@
                 Addresses.FluteBitfield,
                 Addresses.ProgressFlags,
                 Addresses.ProgressIndicator3,
+                Addresses.DR_DungeonCountDisplay,
                 Addresses.NpcFlags,
                 Addresses.ChestSmallKeys,
-                Addresses.DungeonLocationsChecked,
+                Addresses.VT_DungeonLocationsChecked,
+                Addresses.DR_DungeonLocationsChecked,
                 Addresses.InfiniteBombs,
-                Addresses.AllSmallKeys,
+                Addresses.RomName,
+                Addresses.DR_AllSmallKeys,
                 Addresses.Pseudoboots,
-                Addresses.DungeonCheckTotals,
-                Addresses.ChestKeyTotals,
+                Addresses.DR_DungeonCheckTotals,
+                Addresses.DR_ChestKeyTotals,
             };
         }
 

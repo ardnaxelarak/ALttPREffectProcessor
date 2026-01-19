@@ -94,11 +94,13 @@
         public static readonly DataAddress ProgressFlags = new(0xF3C6, 1);
         public static readonly DataAddress MapIcons = new(0xF3C7, 1);
         public static readonly DataAddress ProgressIndicator3 = new(0xF3C9, 1);
+        public static readonly DataAddress DR_DungeonCountDisplay = new(0xF403, 2);
         public static readonly DataAddress NpcFlags = new(0xF410, 2);
         public static readonly DataAddress Timer = new(0xF43E, 4);
-        public static readonly DataAddress DungeonLocationsChecked = new(0xF4B0, 32);
+        public static readonly DataAddress DR_DungeonLocationsChecked = new(0xF4B0, 32);
+        public static readonly DataAddress VT_DungeonLocationsChecked = new(0xF4C0, 16);
         public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 16);
-        public static readonly DataAddress AllSmallKeys = new(0xF4F1, 13);
+        public static readonly DataAddress DR_AllSmallKeys = new(0xF4F1, 13);
         public static readonly DataAddress SwordModifier = new(0x150C0, 1);
         public static readonly DataAddress ArmorModifier = new(0x150C2, 1);
         public static readonly DataAddress MagicModifier = new(0x150C3, 1);
@@ -111,10 +113,11 @@
         public static readonly DataAddress OneHitKO = new(0x150CC, 1);
         public static readonly DataAddress BootsModifier = new(0x150CE, 1);
 
-        public static readonly DataAddress SpecialWeapons = new(0x30802F, 1, DataBank.Rom);
-        public static readonly DataAddress Pseudoboots = new(0x30808E, 1, DataBank.Rom);
-        public static readonly DataAddress DungeonCheckTotals = new(0x30F040, 32, DataBank.Rom);
-        public static readonly DataAddress ChestKeyTotals = new(0x30F010, 16, DataBank.Rom);
+        public static readonly DataAddress RomName = new(0x007FC0, 21, DataBank.Rom);
+        public static readonly DataAddress SpecialWeapons = new(0x18002F, 1, DataBank.Rom);
+        public static readonly DataAddress Pseudoboots = new(0x18008E, 1, DataBank.Rom);
+        public static readonly DataAddress DR_DungeonCheckTotals = new(0x187040, 32, DataBank.Rom);
+        public static readonly DataAddress DR_ChestKeyTotals = new(0x187010, 16, DataBank.Rom);
     }
 
     internal enum DataBank {

@@ -145,7 +145,6 @@ namespace ALttPREffectProcessor {
             Dictionary<DataAddress, Task<int>> values = dict.Keys.ToDictionary(key => key, key => memory.ReadInt(key));
             await Task.WhenAll(values.Values);
             foreach (var key in dict.Keys) {
-                Console.WriteLine($"{key.address:X6}.{key.size:X}");
                 int? newValue = dict[key].NewValue(values[key].Result, addr => values[addr].Result);
                 if (newValue.HasValue) {
                     QueueWrite(key, newValue.Value);

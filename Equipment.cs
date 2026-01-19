@@ -105,6 +105,25 @@ namespace ALttPREffectProcessor {
         public IEquipment<int>? this[Dungeon key] => this.values[key];
     }
 
+    internal class VersionedDungeonValueEquipment : IEquipmentMap<Dungeon, int> {
+        private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
+
+        internal VersionedDungeonValueEquipment(TrackingCache cache, DataAddress vt_addr, int vt_size, DataAddress dr_addr, int dr_size) {
+            foreach (Dungeon dungeon in Enum.GetValues(typeof(Dungeon))) {
+                this.values[dungeon] = new CustomEquipment(cache, get => {
+                    var version = get(Addresses.RomName, 2, 0);
+                    if (version == 0x5456 /* VT */ || version == 0x5245 /* ER */) {
+                        return get(vt_addr, vt_size, vt_size * (int) dungeon);
+                    } else {
+                        return get(dr_addr, dr_size, dr_size * (int) dungeon);
+                    }
+                });
+            }
+        }
+
+        public IEquipment<int>? this[Dungeon key] => this.values[key];
+    }
+
     internal class DungeonNoSewersEquipment : IEquipmentMap<Dungeon, int> {
         private readonly Dictionary<Dungeon, IEquipment<int>> values = new();
 
