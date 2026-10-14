@@ -44,6 +44,7 @@
         public IEquipmentMap<Dungeon, int> DR_AllSmallKeys { get; private set; }
         public IEquipmentMap<Dungeon, int> LocationsChecked { get; private set; }
         public IEquipmentMap<Dungeon, int> DR_DungeonCountDisplayed { get; private set; }
+        public IEquipmentMap<Dungeon, int> DR_DungeonKeyCountDisplayed { get; private set; }
         public IEquipmentMap<Dungeon, int> BigKey { get; private set; }
         public IEquipmentMap<Dungeon, int> Map { get; private set; }
         public IEquipmentMap<Dungeon, int> Compass { get; private set; }
@@ -59,7 +60,7 @@
             RedBoomerang = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x40);
             Hookshot = new ValueEquipment(cache, Addresses.Hookshot, 1);
             Bombs = new CustomEquipment(cache, get => (get(Addresses.Bombs, 1, 0) > 0 || get(Addresses.InfiniteBombs, 1, 0) > 0) ? 1 : 0);
-            Mushroom = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x20);
+            Mushroom = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x28);
             Powder = new BitmaskEquipment(cache, Addresses.InventoryTracking, 1, 0x10);
             FireRod = new ValueEquipment(cache, Addresses.FireRod, 1);
             IceRod = new ValueEquipment(cache, Addresses.IceRod, 1);
@@ -106,6 +107,7 @@
             DR_AllSmallKeys = new DungeonNoSewersEquipment(cache, Addresses.DR_AllSmallKeys, 1);
             LocationsChecked = new VersionedDungeonValueEquipment(cache, Addresses.VT_DungeonLocationsChecked, 1, Addresses.DR_DungeonLocationsChecked, 2);
             DR_DungeonCountDisplayed = new DungeonBitmaskEquipment(cache, Addresses.DR_DungeonCountDisplay);
+            DR_DungeonKeyCountDisplayed = new DungeonBitmaskEquipment(cache, Addresses.DR_DungeonKeyCountDisplay);
 
             BigKey = new DungeonBitmaskEquipment(cache, Addresses.BigKey);
             Map = new DungeonBitmaskEquipment(cache, Addresses.Map);
@@ -129,6 +131,7 @@
                 Addresses.ChestSmallKeys,
                 Addresses.VT_DungeonLocationsChecked,
                 Addresses.DR_DungeonLocationsChecked,
+                Addresses.DR_DungeonKeyCountDisplay,
                 Addresses.InfiniteBombs,
                 Addresses.RomName,
                 Addresses.DR_AllSmallKeys,

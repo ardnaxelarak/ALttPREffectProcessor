@@ -97,6 +97,7 @@
         public static readonly DataAddress DR_DungeonCountDisplay = new(0xF403, 2);
         public static readonly DataAddress NpcFlags = new(0xF410, 2);
         public static readonly DataAddress Timer = new(0xF43E, 4);
+        public static readonly DataAddress DR_DungeonKeyCountDisplay = new(0xF474, 2);
         public static readonly DataAddress DR_DungeonLocationsChecked = new(0xF4B0, 32);
         public static readonly DataAddress VT_DungeonLocationsChecked = new(0xF4C0, 16);
         public static readonly DataAddress ChestSmallKeys = new(0xF4E0, 16);
